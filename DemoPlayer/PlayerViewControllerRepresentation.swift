@@ -78,6 +78,18 @@ extension PlayerViewControllerRepresentation {
                 guard let error else { return }
                 Task { self?.log(playerItemFatalError: error) }
             }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$errorLogs
+                // In some scenarios the error log is appended to very frequently (e.g. if the internet connection is
+                // lost and the user seeks, can be replicated by switching to "airplane mode" during playback). When
+                // this happens, if we continue to update the UI for each update, it can completely lock up for quite
+                // some time. Therefore, to avoid this, we debounce updates to the error log so that only the last value
+                // is published after a short period of time.
+                .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+                .sink { [weak self] logs in
+                    guard !logs.isEmpty else { return }
+                    self?.log(errorLogs: logs)
+                }
+                .store(in: &eventsCancelSet)
             playerItemEventsListener.info.$assetVariants.sink { [weak self] variants in
                 guard !variants.isEmpty else { return }
                 Task { self?.log(variants: variants) }
@@ -100,6 +112,11 @@ extension PlayerViewControllerRepresentation {
         private func log(playerItemFatalError error: Error) {
             eventsData.errors.playerItemFatalError = error
             log(message: "Player item failed")
+        }
+
+        private func log(errorLogs logs: [AVPlayerItemErrorLogEvent]) {
+            eventsData.errors.playerItemErrorLogs = logs
+            log(message: "Error log changed")
         }
 
         private func log(variants: [PlayerItemEventsListener.AssetVariantInfo]) {

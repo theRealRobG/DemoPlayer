@@ -24,6 +24,13 @@ struct ErrorsView: View {
                     }
                 }
             }
+            if !errors.playerItemErrorLogs.isEmpty {
+                Section("Non-Fatal Error Logs") {
+                    ForEach(errors.playerItemErrorLogs, id: \.hashValue) { event in
+                        ErrorLogEventView(errorLogEvent: event)
+                    }
+                }
+            }
         }
     }
 }
@@ -45,6 +52,54 @@ extension ErrorsView {
                         .bold()
                         .padding(.top)
                     ErrorView(error: underlyingError)
+                }
+            }
+        }
+    }
+
+    struct ErrorLogEventView: View {
+        let errorLogEvent: AVPlayerItemErrorLogEvent
+
+        var body: some View {
+            let event = errorLogEvent
+            VStack(alignment: .leading) {
+                Text("\(event.errorDomain): \(String(event.errorStatusCode))")
+                    .font(.caption)
+                if let comment = event.errorComment {
+                    Text(comment)
+                        .font(.caption)
+                }
+                if let sessionID = event.playbackSessionID {
+                    HStack {
+                        Text("Session ID")
+                            .bold()
+                        Text(sessionID)
+                    }
+                    .font(.caption)
+                }
+                if let date = event.date {
+                    HStack {
+                        Text("Date")
+                            .bold()
+                        Text("\(date)")
+                    }
+                    .font(.caption)
+                }
+                if let uri = event.uri {
+                    HStack {
+                        Text("URI")
+                            .bold()
+                        Text(uri)
+                    }
+                    .font(.caption)
+                }
+                if let serverAddress = event.serverAddress {
+                    HStack {
+                        Text("Server Address")
+                            .bold()
+                        Text(serverAddress)
+                    }
+                    .font(.caption)
                 }
             }
         }

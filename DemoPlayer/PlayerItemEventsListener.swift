@@ -8,6 +8,7 @@ class PlayerItemEventsListener {
     func registerListeners(for item: AVPlayerItem) {
         Task.detached { [weak self, weak item] in
             guard let self else { return }
+            self.registerErrorLogListener(for: item)
             self.registerFailedToPlayToEndTimeListener(for: item)
             await self.registerVariantsListener(for: item)
         }
@@ -16,6 +17,24 @@ class PlayerItemEventsListener {
     func cancelListeners() {
         cancelSet.forEach { $0.cancel() }
         cancelSet.removeAll()
+    }
+
+    // MARK: - Error logs
+
+    private func registerErrorLogListener(for item: AVPlayerItem?) {
+        if let events = item?.errorLog()?.events {
+            notifyErrorLogsDidChange(logs: events)
+        }
+        NotificationCenter.default.publisher(for: AVPlayerItem.newErrorLogEntryNotification)
+            .compactMap { [weak item] in
+                PlayerItemNotification(notification: $0, originalItem: item)?.item.errorLog()?.events
+            }
+            .sink { [weak self] in self?.notifyErrorLogsDidChange(logs: $0) }
+            .store(in: &cancelSet)
+    }
+
+    private func notifyErrorLogsDidChange(logs: [AVPlayerItemErrorLogEvent]) {
+        info.errorLogs = logs
     }
 
     // MARK: - Failed to play to end time
@@ -88,6 +107,7 @@ extension PlayerItemEventsListener {
     class EventInfo {
         @Published var assetLoadingError: Error?
         @Published var fatalPlayerItemError: Error?
+        @Published var errorLogs = [AVPlayerItemErrorLogEvent]()
         @Published var assetVariants = [AssetVariantInfo]()
     }
 

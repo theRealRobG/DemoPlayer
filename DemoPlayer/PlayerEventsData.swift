@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 @MainActor
@@ -28,5 +29,6 @@ extension PlayerEventsData {
     class Errors {
         @Published var assetLoadingError: Error?
         @Published var playerItemFatalError: Error?
+        @Published var playerItemErrorLogs = [AVPlayerItemErrorLogEvent]()
     }
 }
