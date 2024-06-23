@@ -2,10 +2,11 @@ import AVFoundation
 import SwiftUI
 
 struct VariantsView: View {
-    let variants: [AVAssetVariant]
+    let variants: [PlayerItemEventsListener.AssetVariantInfo]
 
     var body: some View {
-        List(variants) { variant in
+        List(variants) { assetInfo in
+            let variant = assetInfo.variant
             Section("Variant") {
                 VStack(alignment: .leading) {
                     if variant.averageBitRate != nil || variant.peakBitRate != nil {
@@ -46,6 +47,20 @@ struct VariantsView: View {
                                 .font(.title)
                             maybe(audio.formatIDs) { ids in
                                 Text("Format IDs: \(ids.map { codec($0) }.joined(separator: ", "))")
+                            }
+                            maybe(assetInfo.audioRenditionInfoForCurrentMediaSelection?.channelCount) { channels in
+                                Text("Channels For Selected Option: \(channels)")
+                            }
+                            if #available(iOS 17.0, *) {
+                                maybe(assetInfo.audioRenditionInfoForCurrentMediaSelection?.isImmersive) { immersive in
+                                    Text("Is Immersive For Selected Option: \(immersive)")
+                                }
+                                maybe(assetInfo.audioRenditionInfoForCurrentMediaSelection?.isBinaural) { binaural in
+                                    Text("Is Binaural For Selected Option: \(binaural)")
+                                }
+                                maybe(assetInfo.audioRenditionInfoForCurrentMediaSelection?.isDownmix) { downmix in
+                                    Text("Is Downmix For Selected Option: \(downmix)")
+                                }
                             }
                         }
                     }

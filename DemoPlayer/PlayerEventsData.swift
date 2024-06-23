@@ -1,11 +1,9 @@
-import AVFoundation
 import SwiftUI
 
 @MainActor
 class PlayerEventsData: ObservableObject {
     @Published var messages = [Message]()
-    @Published var tracks = [AVAssetTrack]()
-    @Published var variants = [AVAssetVariant]()
+    @Published var variants = [PlayerItemEventsListener.AssetVariantInfo]()
 
     func append(message: String) {
         messages.append(Message(message: message))
@@ -26,6 +24,3 @@ extension PlayerEventsData {
         }
     }
 }
-
-extension AVAssetTrack: Identifiable {}
-extension AVAssetVariant: Identifiable {}

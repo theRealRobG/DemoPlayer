@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+import Combine
 
 @MainActor
 struct PlayerViewControllerRepresentation: UIViewControllerRepresentable {
@@ -31,9 +32,13 @@ extension PlayerViewControllerRepresentation {
         
         private let player: AVPlayer
         private let eventsData: PlayerEventsData
+        private let playerItemEventsListener: PlayerItemEventsListener
+        private var eventsCancelSet: Set<AnyCancellable>
 
         init(eventsData: PlayerEventsData) {
             self.eventsData = eventsData
+            playerItemEventsListener = PlayerItemEventsListener()
+            eventsCancelSet = Set()
             playerViewController = AVPlayerViewController()
             player = AVPlayer()
             playerViewController.player = player
@@ -48,19 +53,30 @@ extension PlayerViewControllerRepresentation {
                 let item = AVPlayerItem(asset: asset)
                 // The Task is detached so using actor isolated methods to ensure we are running on main.
                 await self.replaceCurrentItem(with: item)
-                do {
-                    let (tracks, variants) = try await asset.load(.tracks, .variants)
-                    await log(tracks: tracks)
-                    await log(variants: variants)
-                } catch {
-                    await log(message: "Could not load asset: \(error)")
-                }
+                await setUpEventListeners(for: item)
             }
         }
 
         func dismantlePlayer() {
+            playerItemEventsListener.cancelListeners()
+            eventsCancelSet.forEach { $0.cancel() }
+            eventsCancelSet.removeAll()
             player.replaceCurrentItem(with: nil)
             playerViewController.player = nil
+        }
+
+        private func setUpEventListeners(for item: AVPlayerItem) {
+            playerItemEventsListener.registerListeners(for: item)
+            // Each sink pushes to a `Task` to re-access `self` as there is no guarantee that the sink completion block
+            // is acting on the main thread and pushing back to Task (when this class is on `MainActor`) ensures that
+            // the execution occurs on main.
+            playerItemEventsListener.info.$assetLoadingError.sink { [weak self] error in
+                guard let error else { return }
+                Task { self?.log(message: "Asset loading error: \(error)") }
+            }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$assetVariants.sink { [weak self] variants in
+                Task { self?.log(variants: variants) }
+            }.store(in: &eventsCancelSet)
         }
 
         private func replaceCurrentItem(with item: AVPlayerItem) {
@@ -71,12 +87,7 @@ extension PlayerViewControllerRepresentation {
             eventsData.append(message: message)
         }
 
-        private func log(tracks: [AVAssetTrack]) {
-            eventsData.tracks = tracks
-            eventsData.append(message: "Loaded tracks (count: \(tracks.count))")
-        }
-
-        private func log(variants: [AVAssetVariant]) {
+        private func log(variants: [PlayerItemEventsListener.AssetVariantInfo]) {
             eventsData.variants = variants
             eventsData.append(message: "Loaded variants (count: \(variants.count))")
         }
