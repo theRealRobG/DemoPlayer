@@ -8,10 +8,13 @@ struct PlayerPageView: View {
     var body: some View {
         PlayerViewControllerRepresentation(assetURL: assetURL, eventsData: playerEventsData)
         Spacer()
-        List {
-            ForEach(playerEventsData.messages) {
+        TabView {
+            List(playerEventsData.messages) {
                 Text($0.message)
             }
+            .tabItem { Label("Logs", systemImage: "doc.plaintext") }
+            VariantsView(variants: playerEventsData.variants)
+                .tabItem { Label("Variants", systemImage: "doc.on.doc") }
         }
     }
 }

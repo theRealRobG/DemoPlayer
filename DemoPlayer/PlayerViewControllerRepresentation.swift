@@ -45,10 +45,11 @@ extension PlayerViewControllerRepresentation {
                 // The Task is detached so using actor isolated methods to ensure we are running on main.
                 await self.replaceCurrentItem(with: item)
                 do {
-                    let tracks = try await asset.load(.tracks)
+                    let (tracks, variants) = try await asset.load(.tracks, .variants)
                     await log(tracks: tracks)
+                    await log(variants: variants)
                 } catch {
-                    await log(message: "Could not load tracks: \(error)")
+                    await log(message: "Could not load asset: \(error)")
                 }
             }
         }
@@ -62,10 +63,13 @@ extension PlayerViewControllerRepresentation {
         }
 
         private func log(tracks: [AVAssetTrack]) {
+            eventsData.tracks = tracks
             eventsData.append(message: "Loaded tracks (count: \(tracks.count))")
-            for track in tracks {
-                eventsData.append(message: "Loaded track: \(track)")
-            }
+        }
+
+        private func log(variants: [AVAssetVariant]) {
+            eventsData.variants = variants
+            eventsData.append(message: "Loaded variants (count: \(variants.count))")
         }
     }
 }
