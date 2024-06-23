@@ -4,6 +4,7 @@ import SwiftUI
 class PlayerEventsData: ObservableObject {
     @Published var messages = [Message]()
     @Published var variants = [PlayerItemEventsListener.AssetVariantInfo]()
+    @Published var errors = Errors()
 
     func append(message: String) {
         messages.append(Message(message: message))
@@ -22,5 +23,10 @@ extension PlayerEventsData {
             self.id = UUID()
             self.message = message
         }
+    }
+
+    class Errors {
+        @Published var assetLoadingError: Error?
+        @Published var playerItemFatalError: Error?
     }
 }

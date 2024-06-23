@@ -13,6 +13,8 @@ struct PlayerPageView: View {
                 .tabItem { Label("Logs", systemImage: "doc.plaintext") }
             VariantsView(variants: playerEventsData.variants)
                 .tabItem { Label("Variants", systemImage: "doc.on.doc") }
+            ErrorsView(errors: playerEventsData.errors)
+                .tabItem { Label("Errors", systemImage: "play.slash") }
         }
     }
 }

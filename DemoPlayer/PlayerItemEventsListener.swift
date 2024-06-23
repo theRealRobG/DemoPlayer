@@ -8,6 +8,7 @@ class PlayerItemEventsListener {
     func registerListeners(for item: AVPlayerItem) {
         Task.detached { [weak self, weak item] in
             guard let self else { return }
+            self.registerFailedToPlayToEndTimeListener(for: item)
             await self.registerVariantsListener(for: item)
         }
     }
@@ -16,6 +17,27 @@ class PlayerItemEventsListener {
         cancelSet.forEach { $0.cancel() }
         cancelSet.removeAll()
     }
+
+    // MARK: - Failed to play to end time
+
+    private func registerFailedToPlayToEndTimeListener(for item: AVPlayerItem?) {
+        if let error = item?.error {
+            notifyFailedToPlayToEndTime(error: error)
+        }
+        NotificationCenter.default.publisher(for: AVPlayerItem.failedToPlayToEndTimeNotification)
+            .compactMap { [weak item] in
+                PlayerItemNotification(notification: $0, originalItem: item)?
+                    .userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
+            }
+            .sink { [weak self] in self?.notifyFailedToPlayToEndTime(error: $0) }
+            .store(in: &cancelSet)
+    }
+
+    private func notifyFailedToPlayToEndTime(error: Error) {
+        info.fatalPlayerItemError = error
+    }
+
+    // MARK: - Media selection did change
 
     private func registerVariantsListener(for item: AVPlayerItem?) async {
         guard let asset = item?.asset as? AVURLAsset else { return }
@@ -34,14 +56,9 @@ class PlayerItemEventsListener {
         guard let item else { return }
         notifyVariantsChanged(item: item, audioGroup: audioGroup, variants: variants)
         NotificationCenter.default.publisher(for: AVPlayerItem.mediaSelectionDidChangeNotification)
-            .compactMap { [weak item] (notification) -> PlayerItemNotification? in
-                guard let itemNotification = PlayerItemNotification(notification: notification) else { return nil }
-                guard itemNotification.item === item else { return nil }
-                return itemNotification
-            }
-            .sink { [weak self, weak item, audioGroup, variants] notification in
-                guard let item, let self else { return }
-                self.notifyVariantsChanged(item: item, audioGroup: audioGroup, variants: variants)
+            .compactMap { [weak item] in PlayerItemNotification(notification: $0, originalItem: item) }
+            .sink { [weak self, audioGroup, variants] in
+                self?.notifyVariantsChanged(item: $0.item, audioGroup: audioGroup, variants: variants)
             }
             .store(in: &cancelSet)
     }
@@ -70,6 +87,7 @@ class PlayerItemEventsListener {
 extension PlayerItemEventsListener {
     class EventInfo {
         @Published var assetLoadingError: Error?
+        @Published var fatalPlayerItemError: Error?
         @Published var assetVariants = [AssetVariantInfo]()
     }
 
@@ -92,8 +110,8 @@ extension PlayerItemEventsListener {
         let name: Notification.Name
         let userInfo: [AnyHashable: Any]?
 
-        init?(notification: Notification) {
-            guard let playerItem = notification.object as? AVPlayerItem else {
+        init?(notification: Notification, originalItem: AVPlayerItem?) {
+            guard let playerItem = notification.object as? AVPlayerItem, playerItem === originalItem else {
                 return nil
             }
             item = playerItem

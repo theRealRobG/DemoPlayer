@@ -72,9 +72,14 @@ extension PlayerViewControllerRepresentation {
             // the execution occurs on main.
             playerItemEventsListener.info.$assetLoadingError.sink { [weak self] error in
                 guard let error else { return }
-                Task { self?.log(message: "Asset loading error: \(error)") }
+                Task { self?.log(assetLoadingError: error) }
+            }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$fatalPlayerItemError.sink { [weak self] error in
+                guard let error else { return }
+                Task { self?.log(playerItemFatalError: error) }
             }.store(in: &eventsCancelSet)
             playerItemEventsListener.info.$assetVariants.sink { [weak self] variants in
+                guard !variants.isEmpty else { return }
                 Task { self?.log(variants: variants) }
             }.store(in: &eventsCancelSet)
         }
@@ -87,9 +92,19 @@ extension PlayerViewControllerRepresentation {
             eventsData.append(message: message)
         }
 
+        private func log(assetLoadingError error: Error) {
+            eventsData.errors.assetLoadingError = error
+            log(message: "Asset loading failed")
+        }
+
+        private func log(playerItemFatalError error: Error) {
+            eventsData.errors.playerItemFatalError = error
+            log(message: "Player item failed")
+        }
+
         private func log(variants: [PlayerItemEventsListener.AssetVariantInfo]) {
             eventsData.variants = variants
-            eventsData.append(message: "Loaded variants (count: \(variants.count))")
+            eventsData.append(message: "Variants changed (count: \(variants.count))")
         }
     }
 }
