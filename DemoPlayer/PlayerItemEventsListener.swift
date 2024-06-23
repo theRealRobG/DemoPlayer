@@ -80,10 +80,11 @@ extension PlayerItemEventsListener {
         var id: ObjectIdentifier { ObjectIdentifier(variant) }
     }
 
-    struct NoAudioGroupLoadingError: Error, CustomNSError {
+    struct NoAudioGroupLoadingError: Error, CustomNSError, CustomStringConvertible {
         static let errorDomain = "AssetVariantLoadingErrorDomain"
         let errorCode = 1
         let errorUserInfo = [NSLocalizedDescriptionKey: "Audible selection group is nil for provided player item."]
+        var description = "Audible selection group is nil for provided player item (NoAudioGroupLoadingError)."
     }
 
     struct PlayerItemNotification {
