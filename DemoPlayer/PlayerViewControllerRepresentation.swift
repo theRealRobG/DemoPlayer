@@ -6,6 +6,10 @@ struct PlayerViewControllerRepresentation: UIViewControllerRepresentable {
     let assetURL: URL
     let eventsData: PlayerEventsData
 
+    static func dismantleUIViewController(_ uiViewController: AVPlayerViewController, coordinator: Coordinator) {
+        coordinator.dismantlePlayer()
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(eventsData: eventsData)
     }
@@ -52,6 +56,11 @@ extension PlayerViewControllerRepresentation {
                     await log(message: "Could not load asset: \(error)")
                 }
             }
+        }
+
+        func dismantlePlayer() {
+            player.replaceCurrentItem(with: nil)
+            playerViewController.player = nil
         }
 
         private func replaceCurrentItem(with item: AVPlayerItem) {
