@@ -17,6 +17,7 @@
 		8277EC2C2C26544C0017DA3E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8277EC2B2C26544C0017DA3E /* Assets.xcassets */; };
 		8277EC302C26544C0017DA3E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8277EC2F2C26544C0017DA3E /* Preview Assets.xcassets */; };
 		8277EC372C2655380017DA3E /* PlayerViewControllerRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8277EC362C2655380017DA3E /* PlayerViewControllerRepresentation.swift */; };
+		82BAE55D2C287ECF0014231D /* PlayerItemEventsListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82BAE55C2C287ECF0014231D /* PlayerItemEventsListener.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		8277EC2D2C26544C0017DA3E /* DemoPlayer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DemoPlayer.entitlements; sourceTree = "<group>"; };
 		8277EC2F2C26544C0017DA3E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		8277EC362C2655380017DA3E /* PlayerViewControllerRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewControllerRepresentation.swift; sourceTree = "<group>"; };
+		82BAE55C2C287ECF0014231D /* PlayerItemEventsListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerItemEventsListener.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +72,7 @@
 				8277EC272C26544B0017DA3E /* DemoPlayerApp.swift */,
 				8234DC452C27F15B004CFD00 /* MessagesView.swift */,
 				8234DC3D2C27C0C6004CFD00 /* PlayerEventsData.swift */,
+				82BAE55C2C287ECF0014231D /* PlayerItemEventsListener.swift */,
 				8234DC3F2C27C1F8004CFD00 /* PlayerPageView.swift */,
 				8277EC362C2655380017DA3E /* PlayerViewControllerRepresentation.swift */,
 				8234DC432C27E521004CFD00 /* VariantsView.swift */,
@@ -158,6 +161,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				82BAE55D2C287ECF0014231D /* PlayerItemEventsListener.swift in Sources */,
 				8234DC442C27E521004CFD00 /* VariantsView.swift in Sources */,
 				8277EC372C2655380017DA3E /* PlayerViewControllerRepresentation.swift in Sources */,
 				8234DC402C27C1F8004CFD00 /* PlayerPageView.swift in Sources */,
