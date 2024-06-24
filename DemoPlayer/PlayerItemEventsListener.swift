@@ -5,9 +5,19 @@ class PlayerItemEventsListener {
     let info = EventInfo()
     private var cancelSet = Set<AnyCancellable>()
 
+    private var currentVideoTrackID: CMPersistentTrackID?
+    private var currentVideoTrackLoadDescriptionTask: Task<(), any Error>?
+    private var currentAudioTrackID: CMPersistentTrackID?
+    private var currentAudioTrackLoadDescriptionTask: Task<(), any Error>?
+    private var currentSubtitleTrackID: CMPersistentTrackID?
+    private var currentSubtitleTrackLoadDescriptionTask: Task<(), any Error>?
+    private var currentCaptionsTrackID: CMPersistentTrackID?
+    private var currentCaptionsTrackLoadDescriptionTask: Task<(), any Error>?
+
     func registerListeners(for item: AVPlayerItem) {
         Task.detached { [weak self, weak item] in
             guard let self else { return }
+            self.registerTracksListener(for: item)
             self.registerErrorLogListener(for: item)
             self.registerFailedToPlayToEndTimeListener(for: item)
             await self.registerVariantsListener(for: item)
@@ -17,6 +27,72 @@ class PlayerItemEventsListener {
     func cancelListeners() {
         cancelSet.forEach { $0.cancel() }
         cancelSet.removeAll()
+    }
+
+    // MARK: - Tracks did change
+
+    private func registerTracksListener(for item: AVPlayerItem?) {
+        guard let item else { return }
+        if !item.tracks.isEmpty {
+            notifyTracksDidChange(tracks: item.tracks)
+        }
+        item.publisher(for: \.tracks)
+            .sink { [weak self] in self?.notifyTracksDidChange(tracks: $0) }
+            .store(in: &cancelSet)
+    }
+
+    private func notifyTracksDidChange(tracks: [AVPlayerItemTrack]) {
+        for track in tracks {
+            guard let assetTrack = track.assetTrack else { return }
+            switch assetTrack.mediaType {
+            case .video:
+                guard currentVideoTrackID != assetTrack.trackID else { return }
+                currentVideoTrackID = assetTrack.trackID
+                currentVideoTrackLoadDescriptionTask?.cancel()
+                currentVideoTrackLoadDescriptionTask = Task.detached { [weak self] in
+                    try Task.checkCancellation()
+                    guard let formats = try? await assetTrack.load(.formatDescriptions) else { return }
+                    try Task.checkCancellation()
+                    self?.info.videoTrackInfo = formats.last
+                }
+            case .audio:
+                guard currentAudioTrackID != assetTrack.trackID else { return }
+                currentAudioTrackID = assetTrack.trackID
+                currentAudioTrackLoadDescriptionTask?.cancel()
+                currentAudioTrackLoadDescriptionTask = Task.detached { [weak self] in
+                    try Task.checkCancellation()
+                    guard let formats = try? await assetTrack.load(.formatDescriptions) else { return }
+                    try Task.checkCancellation()
+                    self?.info.audioTrackInfo = formats.last
+                }
+            case .closedCaption:
+                guard currentCaptionsTrackID != assetTrack.trackID else { return }
+                currentCaptionsTrackID = assetTrack.trackID
+                currentCaptionsTrackLoadDescriptionTask?.cancel()
+                currentCaptionsTrackLoadDescriptionTask = Task.detached { [weak self] in
+                    try Task.checkCancellation()
+                    guard let formats = try? await assetTrack.load(.formatDescriptions) else { return }
+                    try Task.checkCancellation()
+                    self?.info.captionTrackInfo = formats.last
+                }
+            case .subtitle:
+                guard currentSubtitleTrackID != assetTrack.trackID else { return }
+                currentSubtitleTrackID = assetTrack.trackID
+                currentSubtitleTrackLoadDescriptionTask?.cancel()
+                currentSubtitleTrackLoadDescriptionTask = Task.detached { [weak self] in
+                    try Task.checkCancellation()
+                    guard let formats = try? await assetTrack.load(.formatDescriptions) else { return }
+                    try Task.checkCancellation()
+                    self?.info.subtitleTrackInfo = formats.last
+                }
+            case .text: print("Unhandled asset track change for type \"text\"\n\(assetTrack)")
+            case .timecode: print("Unhandled asset track change for type \"timecode\"\n\(assetTrack)")
+            case .metadata: print("Unhandled asset track change for type \"metadata\"\n\(assetTrack)")
+            case .muxed: print("Unhandled asset track change for type \"muxed\"\n\(assetTrack)")
+            case .haptic: print("Unhandled asset track change for type \"haptic\"\n\(assetTrack)")
+            default: print("Unhandled asset track change for type \"\(assetTrack.mediaType.rawValue)\"\n\(assetTrack)")
+            }
+        }
     }
 
     // MARK: - Error logs
@@ -109,6 +185,10 @@ extension PlayerItemEventsListener {
         @Published var fatalPlayerItemError: Error?
         @Published var errorLogs = [AVPlayerItemErrorLogEvent]()
         @Published var assetVariants = [AssetVariantInfo]()
+        @Published var videoTrackInfo: CMFormatDescription?
+        @Published var audioTrackInfo: CMFormatDescription?
+        @Published var captionTrackInfo: CMFormatDescription?
+        @Published var subtitleTrackInfo: CMFormatDescription?
     }
 
     struct AssetVariantInfo: Identifiable {

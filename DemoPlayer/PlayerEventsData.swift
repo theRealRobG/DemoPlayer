@@ -6,6 +6,7 @@ class PlayerEventsData: ObservableObject {
     @Published var messages = [Message]()
     @Published var variants = [PlayerItemEventsListener.AssetVariantInfo]()
     @Published var errors = Errors()
+    @Published var tracks = TrackInfo()
 
     func append(message: String) {
         messages.append(Message(message: message))
@@ -30,5 +31,29 @@ extension PlayerEventsData {
         @Published var assetLoadingError: Error?
         @Published var playerItemFatalError: Error?
         @Published var playerItemErrorLogs = [AVPlayerItemErrorLogEvent]()
+    }
+
+    struct TrackInfo {
+        private(set) var videoTrackInfo: CMFormatDescription?
+        private(set) var audioTrackInfo: CMFormatDescription?
+        private(set) var captionTrackInfo: CMFormatDescription?
+        private(set) var subtitleTrackInfo: CMFormatDescription?
+
+        mutating func set(videoTrackInfo: CMFormatDescription?) {
+            self.videoTrackInfo = videoTrackInfo
+        }
+
+        mutating func set(audioTrackInfo: CMFormatDescription?) {
+            self.audioTrackInfo = audioTrackInfo
+        }
+
+        mutating func set(captionTrackInfo: CMFormatDescription?) {
+            self.captionTrackInfo = captionTrackInfo
+        }
+
+        mutating func set(subtitleTrackInfo: CMFormatDescription?) {
+            self.subtitleTrackInfo = subtitleTrackInfo
+        }
+
     }
 }

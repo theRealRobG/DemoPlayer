@@ -27,7 +27,7 @@ struct VariantsView: View {
                             Text("Video")
                                 .font(.title)
                             maybe(video.codecTypes) { c in
-                                Text("Codec Types: \(c.map { codec($0) }.joined(separator: ", "))")
+                                Text("Codec Types: \(c.map { String(formatID: $0) }.joined(separator: ", "))")
                             }
                             maybe(video.nominalFrameRate) {
                                 Text("Frame Rate: \($0, specifier: "%.3f")")
@@ -46,7 +46,7 @@ struct VariantsView: View {
                             Text("Audio")
                                 .font(.title)
                             maybe(audio.formatIDs) { ids in
-                                Text("Format IDs: \(ids.map { codec($0) }.joined(separator: ", "))")
+                                Text("Format IDs: \(ids.map { String(formatID: $0) }.joined(separator: ", "))")
                             }
                             maybe(assetInfo.audioRenditionInfoForCurrentMediaSelection?.channelCount) { channels in
                                 Text("Channels For Selected Option: \(channels)")
@@ -75,19 +75,6 @@ struct VariantsView: View {
         } else {
             return AnyView(erasing: EmptyView())
         }
-    }
-
-    // This function takes a `FourCharCode` and provides the string representation. This is taken from this Gist:
-    // > https://gist.github.com/patrickjuchli/d1b07f97e0ea1da5db09
-    private func codec(_ fourCC: FourCharCode) -> String {
-        let cString: [CChar] = [
-            CChar(fourCC >> 24 & 0xFF),
-            CChar(fourCC >> 16 & 0xFF),
-            CChar(fourCC >> 8 & 0xFF),
-            CChar(fourCC & 0xFF),
-            0
-        ]
-        return String(cString: cString)
     }
 
     private func videoRange(_ avVideoRange: AVVideoRange) -> String {

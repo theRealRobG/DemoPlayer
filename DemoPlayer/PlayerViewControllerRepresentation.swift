@@ -94,6 +94,18 @@ extension PlayerViewControllerRepresentation {
                 guard !variants.isEmpty else { return }
                 Task { self?.log(variants: variants) }
             }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$audioTrackInfo.sink { [weak self] track in
+                Task { self?.log(audioTrackInfo: track) }
+            }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$videoTrackInfo.sink { [weak self] track in
+                Task { self?.log(videoTrackInfo: track) }
+            }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$captionTrackInfo.sink { [weak self] track in
+                Task { self?.log(captionTrackInfo: track) }
+            }.store(in: &eventsCancelSet)
+            playerItemEventsListener.info.$subtitleTrackInfo.sink { [weak self] track in
+                Task { self?.log(subtitleTrackInfo: track) }
+            }.store(in: &eventsCancelSet)
         }
 
         private func replaceCurrentItem(with item: AVPlayerItem) {
@@ -122,6 +134,23 @@ extension PlayerViewControllerRepresentation {
         private func log(variants: [PlayerItemEventsListener.AssetVariantInfo]) {
             eventsData.variants = variants
             eventsData.append(message: "Variants changed (count: \(variants.count))")
+        }
+
+        private func log(audioTrackInfo: CMFormatDescription?) {
+            eventsData.tracks.set(audioTrackInfo: audioTrackInfo)
+            log(message: "Audio track changed")
+        }
+        private func log(videoTrackInfo: CMFormatDescription?) {
+            eventsData.tracks.set(videoTrackInfo: videoTrackInfo)
+            log(message: "Video track changed")
+        }
+        private func log(captionTrackInfo: CMFormatDescription?) {
+            eventsData.tracks.set(captionTrackInfo: captionTrackInfo)
+            log(message: "Caption track changed")
+        }
+        private func log(subtitleTrackInfo: CMFormatDescription?) {
+            eventsData.tracks.set(subtitleTrackInfo: subtitleTrackInfo)
+            log(message: "Subtitle track changed")
         }
     }
 }
