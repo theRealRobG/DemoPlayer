@@ -78,21 +78,12 @@
 			children = (
 				8277EC2D2C26544C0017DA3E /* DemoPlayer.entitlements */,
 				8234DC412C27CDAD004CFD00 /* README.md */,
-				8279877F2C2A74E500CC3B5A /* BasicRowView.swift */,
-				8277EC292C26544B0017DA3E /* ContentView.swift */,
 				8277EC272C26544B0017DA3E /* DemoPlayerApp.swift */,
-				824E76912C28CF1A000D28D0 /* ErrorsView.swift */,
-				8234DC452C27F15B004CFD00 /* MessagesView.swift */,
-				8234DC3D2C27C0C6004CFD00 /* PlayerEventsData.swift */,
-				82BAE55C2C287ECF0014231D /* PlayerItemEventsListener.swift */,
-				8234DC3F2C27C1F8004CFD00 /* PlayerPageView.swift */,
-				8277EC362C2655380017DA3E /* PlayerViewControllerRepresentation.swift */,
-				82CD096E2C292B07007570BA /* String+Extensions.swift */,
-				82C8C4152C28FCAC00D80B26 /* TracksView.swift */,
-				8234DC432C27E521004CFD00 /* VariantsView.swift */,
-				827987812C2A815900CC3B5A /* View+Extensions.swift */,
 				8277EC2B2C26544C0017DA3E /* Assets.xcassets */,
+				82D805BC2C2B42B5007E968B /* FrameworkExtensions */,
+				82D805BB2C2B4293007E968B /* Player */,
 				8277EC2E2C26544C0017DA3E /* Preview Content */,
+				82D805BA2C2B424C007E968B /* Views */,
 			);
 			path = DemoPlayer;
 			sourceTree = "<group>";
@@ -103,6 +94,39 @@
 				8277EC2F2C26544C0017DA3E /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		82D805BA2C2B424C007E968B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8279877F2C2A74E500CC3B5A /* BasicRowView.swift */,
+				8277EC292C26544B0017DA3E /* ContentView.swift */,
+				824E76912C28CF1A000D28D0 /* ErrorsView.swift */,
+				8234DC452C27F15B004CFD00 /* MessagesView.swift */,
+				8234DC3F2C27C1F8004CFD00 /* PlayerPageView.swift */,
+				82C8C4152C28FCAC00D80B26 /* TracksView.swift */,
+				8234DC432C27E521004CFD00 /* VariantsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		82D805BB2C2B4293007E968B /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				8234DC3D2C27C0C6004CFD00 /* PlayerEventsData.swift */,
+				82BAE55C2C287ECF0014231D /* PlayerItemEventsListener.swift */,
+				8277EC362C2655380017DA3E /* PlayerViewControllerRepresentation.swift */,
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		82D805BC2C2B42B5007E968B /* FrameworkExtensions */ = {
+			isa = PBXGroup;
+			children = (
+				82CD096E2C292B07007570BA /* String+Extensions.swift */,
+				827987812C2A815900CC3B5A /* View+Extensions.swift */,
+			);
+			path = FrameworkExtensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
