@@ -2,53 +2,37 @@ import CoreMedia
 import SwiftUI
 
 struct TracksView: View {
-    let tracks: PlayerEventsData.TrackInfo
+    @ObservedObject var events: PlayerEventsData
 
     var body: some View {
+        let tracks = events.tracks
         List {
             Section("Audio") {
-                if let audio = tracks.audioTrackInfo {
-                    VStack(alignment: .leading) {
-                        if let absd = audio.audioStreamBasicDescription {
-                            RowView(title: "Audio Format", formatID: absd.mFormatID)
-                            RowView(title: "Sample Rate", int: absd.mSampleRate)
-                        }
-                        if let acl = audio.audioChannelLayout {
-                            RowView(title: "Channel Count", int: acl.numberOfChannels)
-                        }
-                    }
+                if #available(iOS 17, *) {
+                    FocusableAudioTracksView(tracks: tracks)
                 } else {
-                    Text("No audio track information")
+                    AudioTracksView(tracks: tracks)
                 }
             }
             Section("Video") {
-                if let video = tracks.videoTrackInfo {
-                    VStack(alignment: .leading) {
-                        RowView(title: "Video Format", formatID: video.mediaSubType.rawValue)
-                        RowView(title: "Dimensions", dimensions: video.dimensions)
-                    }
+                if #available(iOS 17, *) {
+                    FocusableVideoTracksView(tracks: tracks)
                 } else {
-                    Text("No video track information")
+                    VideoTracksView(tracks: tracks)
                 }
             }
             Section("Subtitles") {
-                if let subtitles = tracks.subtitleTrackInfo {
-                    let _ = print("\(subtitles)")
-                    VStack(alignment: .leading) {
-                        RowView(title: "Subtitle Format", formatID: subtitles.mediaSubType.rawValue)
-                    }
+                if #available(iOS 17, *) {
+                    FocusableSubtitlesTracksView(tracks: tracks)
                 } else {
-                    Text("No subtitles track information")
+                    SubtitlesTracksView(tracks: tracks)
                 }
             }
             Section("Closed Captions") {
-                if let captions = tracks.captionTrackInfo {
-                    let _ = print("\(captions)")
-                    VStack(alignment: .leading) {
-                        RowView(title: "Closed Captions Format", formatID: captions.mediaSubType.rawValue)
-                    }
+                if #available(iOS 17, *) {
+                    FocusableClosedCaptionsTracksView(tracks: tracks)
                 } else {
-                    Text("No closed captions track information")
+                    ClosedCaptionsTracksView(tracks: tracks)
                 }
             }
         }
@@ -56,52 +40,110 @@ struct TracksView: View {
 }
 
 extension TracksView {
-    struct RowView: View {
-        let title: String
-        let text: String
-
-        init(title: String, text: String) {
-            self.title = title
-            self.text = text
-        }
-
-        init(title: String, int: Int) {
-            self.title = title
-            self.text = String(int)
-        }
-
-        init(title: String, int: Double) {
-            self.title = title
-            self.text = String(Int(int))
-        }
-
-        init(title: String, int: UInt32) {
-            self.title = title
-            self.text = String(Int(int))
-        }
-
-        init(title: String, formatID: UInt32) {
-            self.title = title
-            self.text = String(formatID: formatID)
-        }
-
-        init(title: String, dimensions: CMVideoDimensions) {
-            self.title = title
-            self.text = "\(String(dimensions.width))x\(String(dimensions.height))"
-        }
-
-        init(title: String, double: CMTime) {
-            self.title = title
-            self.text = "\(double.seconds)"
-        }
+    @available(iOS 17, *)
+    struct FocusableAudioTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+        @FocusState var isFocused: Bool
 
         var body: some View {
-            HStack {
-                Text(title)
-                    .bold()
-                Text(text)
+            AudioTracksView(tracks: tracks)
+                .focusableWithHighlight($isFocused)
+        }
+    }
+
+    @available(iOS 17, *)
+    struct FocusableVideoTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+        @FocusState var isFocused: Bool
+
+        var body: some View {
+            VideoTracksView(tracks: tracks)
+                .focusableWithHighlight($isFocused)
+        }
+    }
+
+    @available(iOS 17, *)
+    struct FocusableSubtitlesTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+        @FocusState var isFocused: Bool
+
+        var body: some View {
+            SubtitlesTracksView(tracks: tracks)
+                .focusableWithHighlight($isFocused)
+        }
+    }
+
+    @available(iOS 17, *)
+    struct FocusableClosedCaptionsTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+        @FocusState var isFocused: Bool
+
+        var body: some View {
+            ClosedCaptionsTracksView(tracks: tracks)
+                .focusableWithHighlight($isFocused)
+        }
+    }
+
+    struct AudioTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+
+        var body: some View {
+            if let audio = tracks.audioTrackInfo {
+                VStack(alignment: .leading) {
+                    if let absd = audio.audioStreamBasicDescription {
+                        BasicRowView(title: "Audio Format", formatID: absd.mFormatID)
+                        BasicRowView(title: "Sample Rate", int: absd.mSampleRate)
+                    }
+                    if let acl = audio.audioChannelLayout {
+                        BasicRowView(title: "Channel Count", int: acl.numberOfChannels)
+                    }
+                }
+            } else {
+                Text("No audio track information")
             }
-            .font(.caption)
+        }
+    }
+
+    struct VideoTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+
+        var body: some View {
+            if let video = tracks.videoTrackInfo {
+                VStack(alignment: .leading) {
+                    BasicRowView(title: "Video Format", formatID: video.mediaSubType.rawValue)
+                    BasicRowView(title: "Dimensions", dimensions: video.dimensions)
+                }
+            } else {
+                Text("No video track information")
+            }
+        }
+    }
+
+    struct SubtitlesTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+
+        var body: some View {
+            if let subtitles = tracks.subtitleTrackInfo {
+                VStack(alignment: .leading) {
+                    BasicRowView(title: "Subtitle Format", formatID: subtitles.mediaSubType.rawValue)
+                }
+            } else {
+                Text("No subtitles track information")
+            }
+        }
+    }
+
+    struct ClosedCaptionsTracksView: View {
+        let tracks: PlayerEventsData.TrackInfo
+
+        var body: some View {
+            if let captions = tracks.captionTrackInfo {
+                VStack(alignment: .leading) {
+                    BasicRowView(title: "Closed Captions Format", formatID: captions.mediaSubType.rawValue)
+                }
+            } else {
+                Text("No closed captions track information")
+            }
         }
     }
 }

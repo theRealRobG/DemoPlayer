@@ -6,13 +6,35 @@ import Combine
 struct PlayerViewControllerRepresentation: UIViewControllerRepresentable {
     let assetURL: URL
     let eventsData: PlayerEventsData
+    let customInfoViewControllers: [UIViewController]
+
+    init(assetURL: URL, eventsData: PlayerEventsData, customInfoViewControllers: [UIViewController] = []) {
+        self.assetURL = assetURL
+        self.eventsData = eventsData
+        self.customInfoViewControllers = customInfoViewControllers
+    }
 
     static func dismantleUIViewController(_ uiViewController: AVPlayerViewController, coordinator: Coordinator) {
         coordinator.dismantlePlayer()
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(eventsData: eventsData)
+        let coordinator = Coordinator(eventsData: eventsData)
+        #if os(iOS)
+        // Only on iOS we don't have customInfoViewControllers on AVPlayerViewController.
+        #else
+        if playerUsesCustomInfoViewControllers {
+            customInfoViewControllers.forEach { viewController in
+                // TODO - figure out a better way of determining the best preferred size. Just using 1920x1080 as that
+                // is the screen size I could determine via my Apple TV. The final size of the view controller is
+                // limited anyway so being too large makes no difference.
+                let size = CGSize(width: 1920, height: 1080)
+                viewController.preferredContentSize = size
+            }
+            coordinator.playerViewController.customInfoViewControllers = customInfoViewControllers
+        }
+        #endif
+        return coordinator
     }
     
     func makeUIViewController(context: Context) -> AVPlayerViewController {

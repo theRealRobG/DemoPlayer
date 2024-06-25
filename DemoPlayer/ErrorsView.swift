@@ -2,24 +2,27 @@ import AVFoundation
 import SwiftUI
 
 struct ErrorsView: View {
-    let errors: PlayerEventsData.Errors
+    @ObservedObject var events: PlayerEventsData
 
     var body: some View {
+        let errors = events.errors
         List {
             if errors.assetLoadingError != nil || errors.playerItemFatalError != nil {
                 Section("Fatal Error") {
                     if let error = errors.assetLoadingError {
-                        VStack(alignment: .leading) {
-                            Text("Asset Loading Error")
-                                .font(.headline)
-                            ErrorView(error: error)
+                        let headline = "Asset Loading Error"
+                        if #available(iOS 17, *) {
+                            FocusableFatalErrorView(headline: headline, error: error)
+                        } else {
+                            FatalErrorView(headline: headline, error: error)
                         }
                     }
                     if let error = errors.playerItemFatalError {
-                        VStack(alignment: .leading) {
-                            Text("Player Item Fatal Error")
-                                .font(.headline)
-                            ErrorView(error: error)
+                        let headline = "Player Item Fatal Error"
+                        if #available(iOS 17, *) {
+                            FocusableFatalErrorView(headline: headline, error: error)
+                        } else {
+                            FatalErrorView(headline: headline, error: error)
                         }
                     }
                 }
@@ -27,7 +30,11 @@ struct ErrorsView: View {
             if !errors.playerItemErrorLogs.isEmpty {
                 Section("Non-Fatal Error Logs") {
                     ForEach(errors.playerItemErrorLogs, id: \.hashValue) { event in
-                        ErrorLogEventView(errorLogEvent: event)
+                        if #available(iOS 17, *) {
+                            FocusableErrorLogEventView(errorLogEvent: event)
+                        } else {
+                            ErrorLogEventView(errorLogEvent: event)
+                        }
                     }
                 }
             }
@@ -36,6 +43,42 @@ struct ErrorsView: View {
 }
 
 extension ErrorsView {
+    @available(iOS 17, *)
+    struct FocusableFatalErrorView: View {
+        let headline: String
+        let error: Error
+        @FocusState var isFocused: Bool
+
+        var body: some View {
+            FatalErrorView(headline: headline, error: error)
+                .focusableWithHighlight($isFocused)
+        }
+    }
+
+    @available(iOS 17, *)
+    struct FocusableErrorLogEventView: View {
+        let errorLogEvent: AVPlayerItemErrorLogEvent
+        @FocusState var isFocused: Bool
+
+        var body: some View {
+            ErrorLogEventView(errorLogEvent: errorLogEvent)
+                .focusableWithHighlight($isFocused)
+        }
+    }
+
+    struct FatalErrorView: View {
+        let headline: String
+        let error: Error
+
+        var body: some View {
+            VStack(alignment: .leading) {
+                Text(headline)
+                    .font(.headline)
+                ErrorView(error: error)
+            }
+        }
+    }
+
     struct ErrorView: View {
         let error: Error
 
@@ -107,6 +150,7 @@ extension ErrorsView {
 }
 
 #Preview {
+    let events = PlayerEventsData()
     let errors = PlayerEventsData.Errors()
     errors.assetLoadingError = NSError(
         domain: "TestErrorDomain",
@@ -136,5 +180,6 @@ extension ErrorsView {
             )
         ]
     )
-    return ErrorsView(errors: errors)
+    events.errors = errors
+    return ErrorsView(events: events)
 }
