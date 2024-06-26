@@ -97,6 +97,7 @@ extension TracksView {
                     if let acl = audio.audioChannelLayout {
                         BasicRowView(title: "Channel Count", int: acl.numberOfChannels)
                     }
+                    BasicRowView(title: "Atmos", isAtmos: audio.audioFormatList)
                 }
             } else {
                 Text("No audio track information")

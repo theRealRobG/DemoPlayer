@@ -82,6 +82,21 @@ struct BasicRowView: View {
         }
     }
 
+    init(title: String, isAtmos: [AudioFormatListItem]) {
+        self.title = title
+        for item in isAtmos {
+            let format = String(formatID: item.mASBD.mFormatID)
+            if format == "ec+3" {
+                self.text = "yes (unencrypted)"
+                return
+            } else if format == "qc+3" {
+                self.text = "yes (encrypted)"
+                return
+            }
+        }
+        self.text = "no"
+    }
+
     var body: some View {
         HStack {
             Text(title)
